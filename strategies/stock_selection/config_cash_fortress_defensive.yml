@@ -1,0 +1,13 @@
+version: 1.0.0
+
+base:
+  strategy_file: strategies/stock_selection/strategy_market_drawdown_scale_in_cash_fortress_defensive.py
+  start_date: 2020-01-01
+  end_date: 2025-12-31
+  frequency: 1d
+  accounts:
+    stock: 1000000
+  benchmark: 000300.XSHG
+
+extra:
+  log_level: info

@@ -1,0 +1,7 @@
+base:
+  strategy_file: strategies/stock_selection/strategy_market_drawdown_scale_in_aggressive_extreme_300059_dual_mode.py
+  start_date: 2020-01-01
+  end_date: 2025-12-31
+  benchmark: 000300.XSHG
+  accounts:
+    stock: 1000000

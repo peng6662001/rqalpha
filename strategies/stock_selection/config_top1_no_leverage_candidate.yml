@@ -1,0 +1,14 @@
+version: 1.0.0
+
+base:
+  strategy_file: strategies/stock_selection/strategy_top1_no_leverage_candidate.py
+  start_date: 2020-01-01
+  end_date: 2025-12-31
+  frequency: 1d
+  matching_type: current_bar
+  accounts:
+    stock: 1000000
+  benchmark: 000300.XSHG
+
+extra:
+  log_level: info

@@ -1,10 +1,17 @@
 from __future__ import annotations
 
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 import numpy as np
 
-from rqalpha.apis import all_instruments, history_bars, order_target_percent, update_universe
+from rqalpha.apis import (
+    all_instruments,
+    history_bars,
+    is_st_stock,
+    is_suspended,
+    order_target_percent,
+    update_universe,
+)
 from rqalpha.environment import Environment
 
 
@@ -12,13 +19,39 @@ POOL_SIZE = 300
 BENCHMARK = "000300.XSHG"
 
 
-def build_stock_pool(pool_size):
-    end_date = Environment.get_instance().config.base.end_date
-    end_dt = datetime.combine(end_date, time.max)
+def build_stock_pool(pool_size, min_listed_days=120, liquidity_lookback=20):
+    trading_dt = Environment.get_instance().trading_dt
+    cutoff_date = trading_dt.date() - timedelta(days=min_listed_days)
     universe = all_instruments("CS")
-    universe = universe[universe["de_listed_date"].map(lambda d: d > end_dt)]
-    order_book_ids = sorted(universe["order_book_id"].tolist())
-    return order_book_ids[:pool_size]
+    if universe.empty:
+        return []
+
+    universe = universe[
+        universe["listed_date"].map(
+            lambda d: (d.date() if hasattr(d, "date") else d) <= cutoff_date
+        )
+    ]
+    if "exchange" in universe.columns:
+        universe = universe[universe["exchange"].isin(["XSHG", "XSHE"])]
+
+    liquid_candidates = []
+    for order_book_id in universe["order_book_id"].tolist():
+        try:
+            if is_st_stock(order_book_id) or is_suspended(order_book_id):
+                continue
+        except Exception:
+            continue
+
+        turnover = history_bars(order_book_id, liquidity_lookback, "1d", "total_turnover")
+        if turnover is None or len(turnover) < liquidity_lookback:
+            continue
+        turnover = np.asarray(turnover, dtype=float)
+        if np.isnan(turnover).any() or np.any(turnover <= 0):
+            continue
+        liquid_candidates.append((order_book_id, float(turnover.mean())))
+
+    liquid_candidates.sort(key=lambda item: item[1], reverse=True)
+    return [order_book_id for order_book_id, _ in liquid_candidates[:pool_size]]
 
 
 def setup_context(

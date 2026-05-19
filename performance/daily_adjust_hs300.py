@@ -66,7 +66,7 @@ CONFIG = {
 
 
 def init(context):
-    random.seed = 1
+    random.seed(1)
     context.counter = 0
 
 
@@ -80,7 +80,7 @@ def handle_bar(context, _):
             order_book_id = random.choice(HS300_2009)
             order_shares(order_book_id, 200)
         for _ in range(5):
-            order_book_id = random.choice(context.portfolio.positions.keys())
+            order_book_id = random.choice(list(context.portfolio.positions.keys()))
             order_shares(order_book_id, -200)
 
 

@@ -1,7 +1,7 @@
 from rqalpha.apis import *
 
 
-def on_trade_handler(event):
+def on_trade_handler(context, event):
     trade = event.trade
     order = event.order
     account = event.account
@@ -11,7 +11,7 @@ def on_trade_handler(event):
     logger.info(account)
 
 
-def on_order_handler(event):
+def on_order_handler(context, event):
     order = event.order
     logger.info("*" * 10 + "Order Handler" + "*" * 10)
     logger.info(order)

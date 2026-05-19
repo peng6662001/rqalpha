@@ -49,7 +49,12 @@ def handle_bar(context, bar_dict):
         price_array_b = history_bars(context.s2, context.window, '1m', 'close')
 
         # 计算价差序列、其标准差、均值、上限、下限
+        if price_array_a is None or price_array_b is None:
+            return
+
         spread_array = price_array_a - context.ratio * price_array_b
+        if len(spread_array) == 0:
+            return
         std = np.std(spread_array)
         mean = np.mean(spread_array)
         up_limit = mean + context.entry_score * std
@@ -68,7 +73,7 @@ def handle_bar(context, bar_dict):
 
             # 获取当前剩余的应建仓的数量
             qty_a = 1 - long_pos_a.quantity
-            qty_b = context.ratio - short_pos_b.sell_quantity
+            qty_b = context.ratio - short_pos_b.quantity
 
             # 由于存在成交不超过下一bar成交量25%的限制,所以可能要通过多次发单成交才能够成功建仓
             if qty_a > 0:
